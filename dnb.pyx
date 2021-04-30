@@ -27,14 +27,13 @@ def reduce_precision(
 
     cdef np.int32_t nchan = blorder[:,0].max()
 
-    cdef np.int32_t i
+    cdef np.int32_t kt, kf, kp
+
     cdef np.ndarray[np.int32_t, ndim=1, mode='c'] auto_inds
     auto_inds = np.empty(nchan, np.int32)
-    for i in xrange(nprod):
-        if blorder[i,0]==blorder[i,1]:
-            auto_inds[blorder[i,0]-1] = i
-
-    cdef np.int32_t n0, n1, n2
+    for kp in xrange(nprod):
+        if blorder[kp,0]==blorder[kp,1]:
+            auto_inds[blorder[kp,0]-1] = kp
 
     cdef np.ndarray[np.float32_t, ndim=2, mode='c'] auto_vis
     auto_vis = np.empty((ntime, nchan), np.float32)
@@ -54,29 +53,29 @@ def reduce_precision(
     vis_r = np.empty((nfreq, nprod, ntime), np.float32)
     vis_i = np.empty((nfreq, nprod, ntime), np.float32)
 
-    for n0 in xrange(nfreq):
-        auto_vis[:,:] = vis[:,n0,auto_inds].real
+    for kf in xrange(nfreq):
+        auto_vis[:,:] = vis[:,kf,auto_inds].real
 
-        for n1 in xrange(nprod):
-            blorder0 = blorder[n1,0]
-            blorder1 = blorder[n1,1]
+        for kp in xrange(nprod):
+            blorder0 = blorder[kp,0]
+            blorder1 = blorder[kp,1]
             is_auto = blorder0==blorder1
 
-        for n2 in xrange(ntime):
-                auto0 = auto_vis[n2,blorder0-1]
-                auto1 = auto_vis[n2,blorder1-1]
+            for kt in xrange(ntime):
+                auto0 = auto_vis[kt,blorder0-1]
+                auto1 = auto_vis[kt,blorder1-1]
 
                 if is_auto:
                     g_max = <np.float32_t> sqrt(auto0*auto1*auto_g_factor)
 
-                    vis_r[n0,n1,n2] = bit_round(vis[n2,n0,n1].real, g_max)
-                    vis_i[n0,n1,n2] = 0
+                    vis_r[kf,kp,kt] = bit_round(vis[kt,kf,kp].real, g_max)
+                    vis_i[kf,kp,kt] = 0
 
                 else:
                     g_max = <np.float32_t> sqrt(auto0*auto1*corr_g_factor)
 
-                    vis_r[n0,n1,n2] = bit_round(vis[n2,n0,n1].real, g_max)
-                    vis_i[n0,n1,n2] = bit_round(vis[n2,n0,n1].imag, g_max)
+                    vis_r[kf,kp,kt] = bit_round(vis[kt,kf,kp].real, g_max)
+                    vis_i[kf,kp,kt] = bit_round(vis[kt,kf,kp].imag, g_max)
 
     return vis_r, vis_i
 
