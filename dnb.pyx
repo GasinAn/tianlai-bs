@@ -69,7 +69,7 @@ def reduce_precision(
                     g_max = <np.float32_t> sqrt(auto0*auto1*auto_g_factor)
 
                     vis_r[kf,kp,kt] = bit_round(vis[kt,kf,kp].real, g_max)
-                    vis_i[kf,kp,kt] = 0
+                    vis_i[kf,kp,kt] = 0.0
 
                 else:
                     g_max = <np.float32_t> sqrt(auto0*auto1*corr_g_factor)
