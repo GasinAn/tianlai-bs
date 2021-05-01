@@ -130,4 +130,5 @@ dmypy.json
 
 *.hdf5
 *.h5
+*.7z
 *.c

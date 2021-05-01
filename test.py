@@ -11,8 +11,8 @@ def test_():
     import time
     from numpy.random import randn
 
-    nfreq = 5     # Number of spectral frequencies.
-    nchan = 16    # Number of channels correlated.
+    nfreq = 32    # Number of spectral frequencies.
+    nchan = 32    # Number of channels correlated.
     ntime = 1000  # Number of temporal integrations.
 
     f = 0.01 # Precision reduction parameter.
@@ -139,4 +139,4 @@ def test():
 
 
 if __name__=='__main__':
-    test()
+    test_()
