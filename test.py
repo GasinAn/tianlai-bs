@@ -97,25 +97,23 @@ def test():
 
     # Reduce precision.
     with h5py.File('example.hdf5', 'r') as df:
+        vis = df['vis']
+        vis_shape, vis_size = vis.shape, vis.size
         blorder = df['blorder'][...]
-        vis_shape, vis_size = df['vis'].shape, df['vis'].size
         vis_r = numpy.empty(
             (vis_shape[1], vis_shape[2], vis_shape[0]), dtype=numpy.float32
         )
         vis_i = numpy.empty(
             (vis_shape[1], vis_shape[2], vis_shape[0]), dtype=numpy.float32
         )
-        t = 0
-        for kf in range(vis_shape[1]):
-            vis = df['vis'][:,kf:kf+1,:]
-            t_s = time.perf_counter()
-            vis_r[kf:kf+1,:,:], vis_i[kf:kf+1,:,:] = reduce_precision(
-                vis, blorder, f/N
+        t_s = time.perf_counter()
+        for kt in range(vis_shape[0]):
+            vis_r[:,:,kt:kt+1], vis_i[:,:,kt:kt+1] = reduce_precision(
+                vis[kt:kt+1,:,:], blorder, f/N
             )
-            t_e = time.perf_counter()
-            t += t_e-t_s
+        t_e = time.perf_counter()
 
-    rate = vis_size*numpy.dtype(numpy.complex64).itemsize/t
+    rate = vis_size*numpy.dtype(numpy.complex64).itemsize/(t_e-t_s)
     print("Throughput(reduce_precision): %f MiB/s" %(rate/1024**2))
 
     # Compress.
