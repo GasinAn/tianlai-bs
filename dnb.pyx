@@ -47,7 +47,7 @@ def reduce_precision(
 
     for kt in xrange(ntime):
         for kf in xrange(nfreq):
-            auto_vis[:] = vis.real[kt,kf,auto_inds]
+            auto_vis[:] = vis[kt,kf,auto_inds].real
             for kp in xrange(nprod):
                 blorder0 = blorder[kp,0]
                 blorder1 = blorder[kp,1]
