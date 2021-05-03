@@ -35,43 +35,36 @@ def reduce_precision(
         if blorder[kp,0]==blorder[kp,1]:
             auto_inds[blorder[kp,0]-1] = kp
 
-    cdef np.ndarray[np.float32_t, ndim=2, mode='c'] auto_vis
-    auto_vis = np.empty((ntime, nchan), np.float32)
+    cdef np.ndarray[np.float32_t, ndim=1, mode='c'] auto_vis
+    auto_vis = np.empty(nchan, np.float32)
 
     cdef np.int32_t blorder0, blorder1
-    cdef np.int32_t is_auto
-
     cdef np.float32_t auto0, auto1
 
     cdef np.float64_t auto_g_factor = g_factor*12.0
     cdef np.float64_t corr_g_factor = g_factor*6.0
-
     cdef np.float32_t g_max
+
     cdef np.float32_t vis_r, vis_i
 
-    for kf in xrange(nfreq):
-        auto_vis[:,:] = vis[:,kf,auto_inds].real
-
-        for kp in xrange(nprod):
-            blorder0 = blorder[kp,0]
-            blorder1 = blorder[kp,1]
-            is_auto = blorder0==blorder1
-
-            for kt in xrange(ntime):
-                auto0 = auto_vis[kt,blorder0-1]
-                auto1 = auto_vis[kt,blorder1-1]
-
-                if is_auto:
+    for kt in xrange(ntime):
+        for kf in xrange(nfreq):
+            auto_vis[:] = vis.real[kt,kf,auto_inds]
+            for kp in xrange(nprod):
+                blorder0 = blorder[kp,0]
+                blorder1 = blorder[kp,1]
+                auto0 = auto_vis[blorder0-1]
+                auto1 = auto_vis[blorder1-1]
+                if blorder0==blorder1:
                     g_max = <np.float32_t> sqrt(auto0*auto1*auto_g_factor)
                     vis[kt,kf,kp] = bit_round(vis[kt,kf,kp].real, g_max)
-
                 else:
                     g_max = <np.float32_t> sqrt(auto0*auto1*corr_g_factor)
                     vis_r = bit_round(vis[kt,kf,kp].real, g_max)
                     vis_i = bit_round(vis[kt,kf,kp].imag, g_max)
                     vis[kt,kf,kp] = vis_r+vis_i*1j
 
-    return vis
+    return 0
 
 def bit_round_py(np.float32_t val, np.float32_t g_max):
     """Python wrapper of C version, for testing."""
@@ -81,6 +74,7 @@ cdef inline np.float32_t bit_round(np.float32_t val, np.float32_t g_max):
     """
     Round val to val_r = n*2**b (int n; int b = max(b: 2**b <= g_max)).
     Warning: undefined behavior when delta_exponent >= 32.
+    Warning: if val or g_max is NAN, the output may not be NAN.
 
     """
 

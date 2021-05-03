@@ -90,50 +90,28 @@ def test():
     """Test reduce_precision for Tianlai data."""
 
     import time
-    from numpy.random import randn
 
     f = 0.01 # Precision reduction parameter.
     N = 100  # Number of samples integrated (delta_f*delta_t).
 
-    # Reduce precision.
+    t_s = time.perf_counter()
+
     with h5py.File('example.hdf5', 'r') as df:
-        t_s = time.perf_counter()
         vis, blorder = df['vis'][...], df['blorder'][...]
-        vis = reduce_precision(vis, blorder, f/N)
-        t_e = time.perf_counter()
-        vis_size = vis.size
 
-    rate = vis_size*numpy.dtype(numpy.complex64).itemsize/(t_e-t_s)
-    print("Throughput(reduce_precision): %f MiB/s" %(rate/1024**2))
-'''
-    # Compress.
-    with h5py.File('dnb_example.hdf5', 'w') as df:
-        t_s = time.perf_counter()
-        df.create_dataset('vis', data=vis.transpose((1,2,0)),
-            **hdf5plugin.Bitshuffle())
-        t_e = time.perf_counter()
+    reduce_precision(vis, blorder, f/N)
 
-    rate = vis_size*numpy.dtype(numpy.complex64).itemsize/(t_e-t_s)
-    print("Throughput(bitshuffle_compress): %f MiB/s" %(rate/1024**2))
+    with h5py.File('example.bs.hdf5', 'w') as df:
+        df.create_dataset('vis', data=vis, **hdf5plugin.Bitshuffle())
 
-    # Decompress.
-    with h5py.File('dnb_example.hdf5', 'r') as df:
-        t_s = time.perf_counter()
-        vis_ = df['vis'][...]
-        t_e = time.perf_counter()
+    t_e = time.perf_counter()
 
-    rate = vis_size*numpy.dtype(numpy.complex64).itemsize/(t_e-t_s)
-    print("Throughput(bitshuffle_decompress): %f MiB/s" %(rate/1024**2))
-
-    if numpy.any(vis_!=vis):
-        raise ValueError('Data changed after I/O.')
-
-    # Calculate compression rate.
     import os
-    fsize = os.path.getsize('dnb_example.hdf5')
-    rate = fsize/(vis_size*numpy.dtype(numpy.complex64).itemsize)
-    print('Compression rate: %f %%' %(100*rate))
-'''
+    fsize = os.path.getsize('example.hdf5')
+    bs_fsize = os.path.getsize('example.bs.hdf5')
+    print((fsize/1024**2)/(t_e-t_s))
+    print((bs_fsize/fsize)*100)
+
 
 if __name__=='__main__':
     test()
