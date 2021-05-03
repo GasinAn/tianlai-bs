@@ -45,8 +45,6 @@ def reduce_precision(
     cdef np.float64_t corr_g_factor = g_factor*6.0
     cdef np.float32_t g_max
 
-    cdef np.float32_t vis_r, vis_i
-
     for kt in xrange(ntime):
         for kf in xrange(nfreq):
             auto_vis[:] = vis.real[kt,kf,auto_inds]
