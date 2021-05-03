@@ -47,11 +47,7 @@ def reduce_precision(
     cdef np.float64_t corr_g_factor = g_factor*6.0
 
     cdef np.float32_t g_max
-
-    cdef np.ndarray[np.float32_t, ndim=3, mode='c'] vis_r
-    cdef np.ndarray[np.float32_t, ndim=3, mode='c'] vis_i
-    vis_r = np.empty((nfreq, nprod, ntime), np.float32)
-    vis_i = np.empty((nfreq, nprod, ntime), np.float32)
+    cdef np.float32_t vis_r, vis_i
 
     for kf in xrange(nfreq):
         auto_vis[:,:] = vis[:,kf,auto_inds].real
@@ -67,17 +63,15 @@ def reduce_precision(
 
                 if is_auto:
                     g_max = <np.float32_t> sqrt(auto0*auto1*auto_g_factor)
-
-                    vis_r[kf,kp,kt] = bit_round(vis[kt,kf,kp].real, g_max)
-                    vis_i[kf,kp,kt] = 0.0
+                    vis[kt,kf,kp] = bit_round(vis[kt,kf,kp].real, g_max)
 
                 else:
                     g_max = <np.float32_t> sqrt(auto0*auto1*corr_g_factor)
+                    vis_r = bit_round(vis[kt,kf,kp].real, g_max)
+                    vis_i = bit_round(vis[kt,kf,kp].imag, g_max)
+                    vis[kt,kf,kp] = vis_r+vis_i*1j
 
-                    vis_r[kf,kp,kt] = bit_round(vis[kt,kf,kp].real, g_max)
-                    vis_i[kf,kp,kt] = bit_round(vis[kt,kf,kp].imag, g_max)
-
-    return vis_r, vis_i
+    return vis
 
 def bit_round_py(np.float32_t val, np.float32_t g_max):
     """Python wrapper of C version, for testing."""

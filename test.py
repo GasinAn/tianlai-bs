@@ -98,19 +98,19 @@ def test():
     # Reduce precision.
     with h5py.File('example.hdf5', 'r') as df:
         t_s = time.perf_counter()
-        vis, blorder = df['vis'], df['blorder']
-        vis_r, vis_i = reduce_precision(vis[...], blorder[...], f/N)
+        vis, blorder = df['vis'][...], df['blorder'][...]
+        vis = reduce_precision(vis, blorder, f/N)
         t_e = time.perf_counter()
         vis_size = vis.size
 
     rate = vis_size*numpy.dtype(numpy.complex64).itemsize/(t_e-t_s)
     print("Throughput(reduce_precision): %f MiB/s" %(rate/1024**2))
-
+'''
     # Compress.
     with h5py.File('dnb_example.hdf5', 'w') as df:
         t_s = time.perf_counter()
-        df.create_dataset('vis_r', data=vis_r, **hdf5plugin.Bitshuffle())
-        df.create_dataset('vis_i', data=vis_i, **hdf5plugin.Bitshuffle())
+        df.create_dataset('vis', data=vis.transpose((1,2,0)),
+            **hdf5plugin.Bitshuffle())
         t_e = time.perf_counter()
 
     rate = vis_size*numpy.dtype(numpy.complex64).itemsize/(t_e-t_s)
@@ -119,14 +119,13 @@ def test():
     # Decompress.
     with h5py.File('dnb_example.hdf5', 'r') as df:
         t_s = time.perf_counter()
-        vis_r_ = df['vis_r'][...]
-        vis_i_ = df['vis_i'][...]
+        vis_ = df['vis'][...]
         t_e = time.perf_counter()
 
     rate = vis_size*numpy.dtype(numpy.complex64).itemsize/(t_e-t_s)
     print("Throughput(bitshuffle_decompress): %f MiB/s" %(rate/1024**2))
 
-    if numpy.any(vis_r_!=vis_r) or numpy.any(vis_i_!=vis_i):
+    if numpy.any(vis_!=vis):
         raise ValueError('Data changed after I/O.')
 
     # Calculate compression rate.
@@ -134,7 +133,7 @@ def test():
     fsize = os.path.getsize('dnb_example.hdf5')
     rate = fsize/(vis_size*numpy.dtype(numpy.complex64).itemsize)
     print('Compression rate: %f %%' %(100*rate))
-
+'''
 
 if __name__=='__main__':
     test()
