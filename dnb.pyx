@@ -57,12 +57,11 @@ def reduce_precision(
                 auto1 = auto_vis[blorder1-1]
                 if blorder0==blorder1:
                     g_max = <np.float32_t> sqrt(auto0*auto1*auto_g_factor)
-                    vis[kt,kf,kp] = bit_round(vis[kt,kf,kp].real, g_max)
+                    vis[kt,kf,kp].real = bit_round(vis[kt,kf,kp].real, g_max)
                 else:
                     g_max = <np.float32_t> sqrt(auto0*auto1*corr_g_factor)
-                    vis_r = bit_round(vis[kt,kf,kp].real, g_max)
-                    vis_i = bit_round(vis[kt,kf,kp].imag, g_max)
-                    vis[kt,kf,kp] = vis_r+vis_i*1j
+                    vis[kt,kf,kp].real = bit_round(vis[kt,kf,kp].real, g_max)
+                    vis[kt,kf,kp].imag = bit_round(vis[kt,kf,kp].imag, g_max)
 
     return 0
 
