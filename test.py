@@ -119,5 +119,6 @@ def test():
     bs_fsize = os.path.getsize('example.bs.hdf5')
     print('Compression rate: %f %%' %((bs_fsize/fsize)*100))
 
+
 if __name__=='__main__':
     test()
