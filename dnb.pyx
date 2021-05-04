@@ -31,9 +31,14 @@ def reduce_precision(
 
     cdef np.ndarray[np.int32_t, ndim=1, mode='c'] auto_inds
     auto_inds = np.empty(nchan, np.int32)
+
+    for kp in xrange(nprod):
+        blorder[kp,0] = blorder[kp,0]-1
+        blorder[kp,1] = blorder[kp,1]-1
+
     for kp in xrange(nprod):
         if blorder[kp,0]==blorder[kp,1]:
-            auto_inds[blorder[kp,0]-1] = kp
+            auto_inds[blorder[kp,0]] = kp
 
     cdef np.ndarray[np.float32_t, ndim=1, mode='c'] auto_vis
     auto_vis = np.empty(nchan, np.float32)
@@ -51,8 +56,8 @@ def reduce_precision(
             for kp in xrange(nprod):
                 blorder0 = blorder[kp,0]
                 blorder1 = blorder[kp,1]
-                auto0 = auto_vis[blorder0-1]
-                auto1 = auto_vis[blorder1-1]
+                auto0 = auto_vis[blorder0]
+                auto1 = auto_vis[blorder1]
                 if blorder0==blorder1:
                     g_max = <np.float32_t> sqrt(auto0*auto1*auto_g_factor)
                     vis[kt,kf,kp].real = bit_round(vis[kt,kf,kp].real, g_max)
