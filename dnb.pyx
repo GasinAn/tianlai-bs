@@ -86,12 +86,12 @@ def reduce_precision(
 
     cdef np.int32_t kt, kf, kp
 
-    cdef np.ndarray[np.int32_t, ndim=1, mode='c'] auto_inds
-    auto_inds = np.empty(nchan, np.int32)
-
     for kp in xrange(nprod):
         blorder[kp,0] = blorder[kp,0]-1
         blorder[kp,1] = blorder[kp,1]-1
+
+    cdef np.ndarray[np.int32_t, ndim=1, mode='c'] auto_inds
+        auto_inds = np.empty(nchan, np.int32)
 
     for kp in xrange(nprod):
         if blorder[kp,0]==blorder[kp,1]:
