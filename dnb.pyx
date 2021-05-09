@@ -96,7 +96,7 @@ cdef inline np.float32_t bit_round(np.float32_t val, np.float32_t g_max):
     val_r_dexp_ge_0 = (delta_exponent > -1) * val_r_dexp_ge_0
 
     # Situation: delta_exponent == -1,
-    # return sgn(val) * g_max.
+    # return sgn(val) * 2 ** b.
     cdef np.uint32_t val_r_dexp_eq_m1
     val_r_dexp_eq_m1 = (p_val[0] & HEX_80000000) | exponent_g_max
     val_r_dexp_eq_m1 = (delta_exponent == -1) * val_r_dexp_eq_m1
