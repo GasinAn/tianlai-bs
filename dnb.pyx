@@ -59,7 +59,7 @@ def reduce_precision(
         Visibilities to be processed.
     blorder: array of int32 with shape (nprod, 2)
         Baseline order (numbers of channels start from 1).
-    f_N: float64
+    g_factor: float64
         f/N. Controls degree of precision reduction.
         f is the maximum fractional increase in noise.
         N is the number of samples entering the integrations.
@@ -86,6 +86,7 @@ def reduce_precision(
 
     cdef np.int32_t kt, kf, kp
 
+    # change the start of numbers of channels from 1 to 0.
     for kp in xrange(nprod):
         blorder[kp,0] = blorder[kp,0]-1
         blorder[kp,1] = blorder[kp,1]-1
@@ -93,6 +94,9 @@ def reduce_precision(
     cdef np.ndarray[np.int32_t, ndim=1, mode='c'] auto_inds
         auto_inds = np.empty(nchan, np.int32)
 
+    # get baseline orders of auto-correlations.
+    # [i,i] = blorder[auto_inds[i]].
+    # V_{ii} = vis[auto_inds[i]].
     for kp in xrange(nprod):
         if blorder[kp,0]==blorder[kp,1]:
             auto_inds[blorder[kp,0]] = kp
@@ -109,23 +113,30 @@ def reduce_precision(
 
     for kt in xrange(ntime):
         for kf in xrange(nfreq):
+            # get auto-correlation visibility data.
+            # V_{ii} = auto_vis[i].
             auto_vis[:] = vis[kt,kf,auto_inds].real
             for kp in xrange(nprod):
-                blorder0 = blorder[kp,0]
-                blorder1 = blorder[kp,1]
-                auto0 = auto_vis[blorder0]
-                auto1 = auto_vis[blorder1]
+                blorder0 = blorder[kp,0] # i
+                blorder1 = blorder[kp,1] # j
+                auto0 = auto_vis[blorder0] # V_{ii}
+                auto1 = auto_vis[blorder1] # V_{jj}
                 if blorder0==blorder1:
+                    # Auto-correlation.
+                    # g_{\text{max}} = \sqrt{V_{ii}*V_{jj}*(f/N*12)}.
                     g_max = <np.float32_t> sqrt(auto0*auto1*auto_g_factor)
                     vis[kt,kf,kp].real = bit_round(vis[kt,kf,kp].real, g_max)
                 else:
+                    # Cross-correlation.
+                    # g_{\text{max}} = \sqrt{V_{ii}*V_{jj}*(f/N*6)}.
                     g_max = <np.float32_t> sqrt(auto0*auto1*corr_g_factor)
                     vis[kt,kf,kp].real = bit_round(vis[kt,kf,kp].real, g_max)
                     vis[kt,kf,kp].imag = bit_round(vis[kt,kf,kp].imag, g_max)
 
+    # change the start of numbers of channels from 0 to 1.
     for kp in xrange(nprod):
-        blorder[kp,0] = blorder[kp,0]+1
-        blorder[kp,1] = blorder[kp,1]+1
+        blorder[kp,0] = blorder[kp,0]-1
+        blorder[kp,1] = blorder[kp,1]-1
 
 def bit_round_py(np.float32_t val, np.float32_t g_max):
     """Python wrapper of C version, for testing."""
