@@ -5,7 +5,7 @@ import hdf5plugin
 from dnb import reduce_precision
 
 def test():
-    """Test reduce_precision for Tianlai data."""
+    """Test for Tianlai data."""
 
     import os
     import time
