@@ -1,3 +1,33 @@
+"""
+Tianlai Visibility Data Precision Reduction.
+
+See arXiv:1503.00638v3 [astro-ph.IM] 16 Sep 2015 for description of method.
+
+Author: Jiachen An <Gasin185@163.com>
+Website: https://github.com/GasinAn/tianlai-bs/blob/main/dnb.pyx
+
+Copyright (c) 2021 Jiachen An (Gasin185@163.com)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+"""
+
 import numpy as np
 
 cimport numpy as np
@@ -20,6 +50,33 @@ def reduce_precision(
         np.ndarray[np.int32_t, ndim=2, mode='c'] blorder not None,
         np.float64_t g_factor,
         ):
+    """
+    Reduce visibility precision for Tianlai data.
+
+    Parameters
+    ----------
+    vis: array of complex64 with shape (ntime, nfreq, nprod)
+        Visibilities to be processed.
+    blorder: array of int32 with shape (nprod, 2)
+        Baseline order (numbers of channels start from 1).
+    f_N: float64
+        f/N. Controls degree of precision reduction.
+        f is the maximum fractional increase in noise.
+        N is the number of samples entering the integrations.
+
+    Returns
+    -------
+    None.
+    After calling this function, vis will be the data after reducing precision.
+
+    Notes
+    -----
+    It is assumed that the cross-correlations between channels are much more
+    smaller than the auto-correlations.
+    See docstring of function bit_round for limitations.
+    See arXiv:1503.00638v3 [astro-ph.IM] 16 Sep 2015 for more details.
+
+    """
 
     cdef np.int32_t ntime = vis.shape[0]
     cdef np.int32_t nfreq = vis.shape[1]
@@ -66,7 +123,9 @@ def reduce_precision(
                     vis[kt,kf,kp].real = bit_round(vis[kt,kf,kp].real, g_max)
                     vis[kt,kf,kp].imag = bit_round(vis[kt,kf,kp].imag, g_max)
 
-    return 0
+    for kp in xrange(nprod):
+        blorder[kp,0] = blorder[kp,0]+1
+        blorder[kp,1] = blorder[kp,1]+1
 
 def bit_round_py(np.float32_t val, np.float32_t g_max):
     """Python wrapper of C version, for testing."""
