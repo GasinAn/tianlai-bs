@@ -92,7 +92,7 @@ def reduce_precision(
         blorder[kp,1] = blorder[kp,1]-1
 
     cdef np.ndarray[np.int32_t, ndim=1, mode='c'] auto_inds
-        auto_inds = np.empty(nchan, np.int32)
+    auto_inds = np.empty(nchan, np.int32)
 
     # get baseline orders of auto-correlations.
     # [i,i] = blorder[auto_inds[i]].
