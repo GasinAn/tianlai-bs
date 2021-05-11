@@ -15,7 +15,7 @@ def test():
     import time
 
     f = 0.01   # Precision reduction parameter.
-    N = 100000 # Number of samples integrated (delta_f*delta_t).
+    N = 244140 # Number of samples integrated (delta_f*delta_t).
 
     fsize = os.path.getsize(EXAMPLE)
 
