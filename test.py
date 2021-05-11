@@ -4,6 +4,10 @@ import hdf5plugin
 
 from dnb import reduce_precision
 
+
+EXAMPLE = '/DATALINKS/D190611_3srcNP/3srcNP_20190622023112_20190622033112.hdf5'
+
+
 def test():
     """Test for Tianlai data."""
 
@@ -13,10 +17,10 @@ def test():
     f = 0.01   # Precision reduction parameter.
     N = 100000 # Number of samples integrated (delta_f*delta_t).
 
-    fsize = os.path.getsize('example.hdf5')
+    fsize = os.path.getsize(EXAMPLE)
 
     t_s = time.perf_counter()
-    with h5py.File('example.hdf5', 'r') as df:
+    with h5py.File(EXAMPLE, 'r') as df:
         vis, blorder = df['vis'][...], df['blorder'][...]
     reduce_precision(vis, blorder, f/N)
     with h5py.File('example.bs.hdf5', 'w') as df:
